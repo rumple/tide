@@ -31,11 +31,24 @@
     overflow-x:hidden;
   }
 
-  header{width:100%;max-width:520px;text-align:center;margin-top:6px}
+  header{
+    width:100%;max-width:520px;text-align:center;margin-top:6px;
+    position:relative;display:flex;align-items:center;justify-content:center;
+  }
   .mark{
     font-size:13px;letter-spacing:.42em;text-transform:uppercase;
     color:var(--ink-dim);font-weight:500;
   }
+
+  /* settings trigger button */
+  .settings-btn{
+    position:absolute;right:0;
+    background:none;border:1px solid var(--line);border-radius:10px;
+    padding:7px 9px;color:var(--ink-dim);cursor:pointer;line-height:0;
+    transition:color .2s,border-color .2s;
+  }
+  .settings-btn:active{color:var(--aqua);border-color:var(--aqua-soft)}
+  .settings-btn svg{width:18px;height:18px;fill:currentColor}
 
   /* ---- the orb : the signature ---- */
   .stage{
@@ -78,8 +91,64 @@
   }
   .hint{font-size:13.5px;color:var(--ink-dim);text-align:center;max-width:300px;line-height:1.5}
 
-  /* ---- controls ---- */
-  .panel{width:100%;max-width:520px;display:flex;flex-direction:column;gap:16px;margin-top:20px}
+  /* ---- go button ---- */
+  .go{
+    width:100%;max-width:520px;margin-top:12px;padding:17px;border:none;border-radius:16px;
+    background:linear-gradient(180deg,#79e6d7,#34a99e);color:#062a27;
+    font-size:16px;font-weight:600;letter-spacing:.04em;cursor:pointer;
+    box-shadow:0 8px 30px -10px rgba(116,224,210,.6);transition:transform .12s,filter .2s;
+  }
+  .go:active{transform:translateY(1px)}
+  .go.stop{background:linear-gradient(180deg,#22383a,#1a2c2e);color:var(--aqua);box-shadow:none;border:1px solid var(--line)}
+
+  .meta{width:100%;max-width:520px;display:flex;justify-content:space-between;color:var(--ink-dim);font-size:12.5px;margin-top:12px}
+  .meta b{color:var(--ink);font-weight:500;font-variant-numeric:tabular-nums}
+
+  /* ---- drawer backdrop ---- */
+  .backdrop{
+    position:fixed;inset:0;background:rgba(0,0,0,.55);
+    -webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);
+    z-index:10;opacity:0;pointer-events:none;
+    transition:opacity .28s ease;
+  }
+  .backdrop.open{opacity:1;pointer-events:auto}
+
+  /* ---- side drawer ---- */
+  .drawer{
+    position:fixed;top:0;right:0;bottom:0;
+    width:min(88vw,340px);
+    background:linear-gradient(160deg,#0d1e22,#091518);
+    border-left:1px solid var(--line);
+    z-index:20;
+    transform:translateX(100%);
+    transition:transform .28s cubic-bezier(.4,0,.2,1);
+    padding:
+      max(env(safe-area-inset-top),20px)
+      max(env(safe-area-inset-right),20px)
+      max(env(safe-area-inset-bottom),20px)
+      20px;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    display:flex;flex-direction:column;gap:20px;
+  }
+  .drawer.open{transform:translateX(0)}
+
+  .drawer-header{
+    display:flex;align-items:center;justify-content:space-between;
+    flex-shrink:0;
+  }
+  .drawer-title{
+    font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--ink-dim);
+  }
+  .drawer-close{
+    background:none;border:none;color:var(--ink-dim);
+    font-size:22px;line-height:1;cursor:pointer;padding:4px;
+    transition:color .2s;
+  }
+  .drawer-close:active{color:var(--aqua)}
+
+  /* ---- controls (inside drawer) ---- */
+  .panel{display:flex;flex-direction:column;gap:16px;flex:1}
 
   .row-label{font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--ink-dim);margin:0 2px 8px}
 
@@ -105,29 +174,18 @@
   details.custom summary::before{content:"+";font-size:16px;line-height:1;color:var(--ink-dim)}
   details.custom[open] summary::before{content:"–"}
   .sliders{display:flex;flex-direction:column;gap:13px;margin-top:14px}
-  .slider{display:grid;grid-template-columns:84px 1fr 48px;align-items:center;gap:12px}
+  .slider{display:grid;grid-template-columns:72px 1fr 44px;align-items:center;gap:10px}
   .slider label{font-size:13px;color:var(--ink)}
   .slider output{font-size:13px;color:var(--ink-dim);text-align:right;font-variant-numeric:tabular-nums}
-  input[type=range]{-webkit-appearance:none;appearance:none;height:3px;background:var(--line);border-radius:2px}
-  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--aqua);border:3px solid var(--bg)}
-  input[type=range]::-moz-range-thumb{width:16px;height:16px;border:3px solid var(--bg);border-radius:50%;background:var(--aqua)}
+  input[type=range]{-webkit-appearance:none;appearance:none;height:3px;background:var(--line);border-radius:2px;width:100%}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--aqua);border:3px solid var(--bg)}
+  input[type=range]::-moz-range-thumb{width:18px;height:18px;border:3px solid var(--bg);border-radius:50%;background:var(--aqua)}
 
-  .go{
-    width:100%;max-width:520px;margin-top:12px;padding:17px;border:none;border-radius:16px;
-    background:linear-gradient(180deg,#79e6d7,#34a99e);color:#062a27;
-    font-size:16px;font-weight:600;letter-spacing:.04em;cursor:pointer;
-    box-shadow:0 8px 30px -10px rgba(116,224,210,.6);transition:transform .12s,filter .2s;
-  }
-  .go:active{transform:translateY(1px)}
-  .go.stop{background:linear-gradient(180deg,#22383a,#1a2c2e);color:var(--aqua);box-shadow:none;border:1px solid var(--line)}
-
-  .meta{width:100%;max-width:520px;display:flex;justify-content:space-between;color:var(--ink-dim);font-size:12.5px;margin-top:12px}
-  .meta b{color:var(--ink);font-weight:500;font-variant-numeric:tabular-nums}
-
-  .note{max-width:520px;width:100%;font-size:12px;color:var(--ink-dim);line-height:1.55;margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+  .note{font-size:12px;color:var(--ink-dim);line-height:1.55;border-top:1px solid var(--line);padding-top:12px;margin-top:auto}
 
   @media (prefers-reduced-motion: reduce){
     .orb,.halo{transition:none}
+    .drawer,.backdrop{transition:none}
   }
   .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
 </style>
@@ -135,6 +193,11 @@
 <body>
   <header>
     <div class="mark">Breath</div>
+    <button class="settings-btn" id="settings-btn" aria-label="Open settings" aria-expanded="false" aria-controls="drawer">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 15.5A3.5 3.5 0 0 1 8.5 12 3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5 3.5 3.5 0 0 1-3.5 3.5m7.43-2.92c.04-.34.07-.69.07-1.08s-.03-.74-.07-1.08l2.32-1.81c.21-.16.27-.45.13-.69l-2.2-3.81a.49.49 0 0 0-.67-.2l-2.73 1.1c-.57-.44-1.18-.81-1.86-1.08l-.41-2.91A.484.484 0 0 0 14 2h-4c-.25 0-.46.18-.5.42l-.41 2.91c-.68.27-1.29.64-1.86 1.08L4.5 5.31a.49.49 0 0 0-.67.2L1.63 9.32c-.14.24-.08.53.13.69L4.08 11.5c-.04.34-.07.69-.07 1.08s.03.74.07 1.08L1.76 15.47c-.21.16-.27.45-.13.69l2.2 3.81c.13.25.43.33.67.2l2.73-1.1c.57.44 1.18.81 1.86 1.08l.41 2.91c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.41-2.91c.68-.27 1.29-.64 1.86-1.08l2.73 1.1c.24.13.54.05.67-.2l2.2-3.81c.14-.24.08-.53-.13-.69l-2.32-1.79z"/>
+      </svg>
+    </button>
   </header>
 
   <main class="stage">
@@ -156,38 +219,49 @@
 
   <button class="go" id="go">Start</button>
 
-  <section class="panel">
-    <div>
-      <p class="row-label">Pattern</p>
-      <div class="chips" id="presets"></div>
-    </div>
-
-    <div>
-      <p class="row-label">Cue</p>
-      <div class="cues" id="cues">
-        <button class="chip" data-cue="sound" aria-pressed="true">🔊 Sound</button>
-        <button class="chip" data-cue="vibe" aria-pressed="false">📳 Vibration</button>
-        <button class="chip" data-cue="visual" aria-pressed="false">○ Visual only</button>
-      </div>
-    </div>
-
-    <details class="custom">
-      <summary>Custom timing</summary>
-      <div class="sliders" id="sliders">
-        <div class="slider"><label for="s-in">Inhale</label><input type="range" id="s-in" min="1" max="10" step="0.5" value="4"><output id="o-in">4s</output></div>
-        <div class="slider"><label for="s-h1">Hold in</label><input type="range" id="s-h1" min="0" max="10" step="0.5" value="0"><output id="o-h1">0s</output></div>
-        <div class="slider"><label for="s-out">Exhale</label><input type="range" id="s-out" min="1" max="14" step="0.5" value="8"><output id="o-out">8s</output></div>
-        <div class="slider"><label for="s-h2">Hold out</label><input type="range" id="s-h2" min="0" max="10" step="0.5" value="0"><output id="o-h2">0s</output></div>
-      </div>
-    </details>
-  </section>
-
   <div class="meta">
     <span>Breaths <b id="breaths">0</b></span>
     <span>Time <b id="elapsed">0:00</b></span>
   </div>
 
-  <p class="note" id="devnote"></p>
+  <!-- backdrop -->
+  <div class="backdrop" id="backdrop" aria-hidden="true"></div>
+
+  <!-- side drawer -->
+  <div class="drawer" id="drawer" role="dialog" aria-label="Settings" aria-modal="true" hidden>
+    <div class="drawer-header">
+      <span class="drawer-title">Settings</span>
+      <button class="drawer-close" id="drawer-close" aria-label="Close settings">&#x2715;</button>
+    </div>
+
+    <section class="panel">
+      <div>
+        <p class="row-label">Pattern</p>
+        <div class="chips" id="presets"></div>
+      </div>
+
+      <div>
+        <p class="row-label">Cue</p>
+        <div class="cues" id="cues">
+          <button class="chip" data-cue="sound" aria-pressed="true">🔊 Sound</button>
+          <button class="chip" data-cue="vibe" aria-pressed="false">📳 Vibration</button>
+          <button class="chip" data-cue="visual" aria-pressed="false">○ Visual only</button>
+        </div>
+      </div>
+
+      <details class="custom">
+        <summary>Custom timing</summary>
+        <div class="sliders" id="sliders">
+          <div class="slider"><label for="s-in">Inhale</label><input type="range" id="s-in" min="1" max="10" step="0.5" value="4"><output id="o-in">4s</output></div>
+          <div class="slider"><label for="s-h1">Hold in</label><input type="range" id="s-h1" min="0" max="10" step="0.5" value="0"><output id="o-h1">0s</output></div>
+          <div class="slider"><label for="s-out">Exhale</label><input type="range" id="s-out" min="1" max="14" step="0.5" value="8"><output id="o-out">8s</output></div>
+          <div class="slider"><label for="s-h2">Hold out</label><input type="range" id="s-h2" min="0" max="10" step="0.5" value="0"><output id="o-h2">0s</output></div>
+        </div>
+      </details>
+
+      <p class="note" id="devnote"></p>
+    </section>
+  </div>
 
 <script>
 (function(){
@@ -196,6 +270,43 @@
   const word=$('#word'), countEl=$('#count'), hint=$('#hint');
   const go=$('#go'), breathsEl=$('#breaths'), elapsedEl=$('#elapsed');
   const root=document.documentElement;
+
+  // ---- drawer ----
+  const drawer=$('#drawer');
+  const backdrop=$('#backdrop');
+  const settingsBtn=$('#settings-btn');
+  const drawerClose=$('#drawer-close');
+
+  function openDrawer(){
+    drawer.hidden=false;
+    // force reflow so transition fires
+    drawer.offsetHeight;
+    drawer.classList.add('open');
+    backdrop.classList.add('open');
+    settingsBtn.setAttribute('aria-expanded','true');
+    drawerClose.focus();
+  }
+  function closeDrawer(){
+    drawer.classList.remove('open');
+    backdrop.classList.remove('open');
+    settingsBtn.setAttribute('aria-expanded','false');
+    settingsBtn.focus();
+    drawer.addEventListener('transitionend', ()=>{ drawer.hidden=true; }, {once:true});
+  }
+
+  settingsBtn.addEventListener('click', openDrawer);
+  drawerClose.addEventListener('click', closeDrawer);
+  backdrop.addEventListener('click', closeDrawer);
+
+  // swipe-right to close on touch devices
+  let touchStartX=0;
+  drawer.addEventListener('touchstart', e=>{ touchStartX=e.touches[0].clientX; }, {passive:true});
+  drawer.addEventListener('touchend', e=>{
+    if(e.changedTouches[0].clientX - touchStartX > 60) closeDrawer();
+  }, {passive:true});
+
+  // close on Escape
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape' && drawer.classList.contains('open')) closeDrawer(); });
 
   // ---- patterns: [inhale, holdIn, exhale, holdOut] in seconds ----
   const PRESETS=[
@@ -246,7 +357,6 @@
       sliders['in'].value=p.t[0]; sliders.h1.value=p.t[1];
       sliders.out.value=p.t[2]; sliders.h2.value=p.t[3];
       syncSliderLabels();
-      if(!fromSlider){const d=$('.custom'); }
     }
   }
   syncSliderLabels();
@@ -255,7 +365,7 @@
   $('#cues').addEventListener('click',e=>{
     const b=e.target.closest('.chip'); if(!b)return;
     const k=b.dataset.cue;
-    if(k==='visual'){ // visual only is exclusive-ish: turns the others off
+    if(k==='visual'){
       cues={sound:false,vibe:false,visual:true};
     }else{
       cues.visual=false;
@@ -274,7 +384,6 @@
     const now=ac.currentTime;
     const master=ac.createGain();
     master.gain.value=0; master.connect(ac.destination);
-    // soft swell so it never startles
     master.gain.setValueAtTime(0, now);
     master.gain.linearRampToValueAtTime(gainPeak, now+Math.min(.12,dur*.3));
     master.gain.linearRampToValueAtTime(0, now+dur);
@@ -282,7 +391,7 @@
       const o=ac.createOscillator();
       o.type='sine'; o.frequency.value=f;
       const g=ac.createGain(); g.gain.value= i===0?1:0;
-      if(freqs.length>1){ // glide between the two notes
+      if(freqs.length>1){
         g.gain.setValueAtTime(i===0?1:0, now);
         g.gain.linearRampToValueAtTime(i===0?0:1, now+dur*.6);
       }
@@ -291,14 +400,12 @@
     });
   }
   const CUE={
-    inhale:()=>tone([392,523], .9, .12),   // ascending, opening
-    exhale:()=>tone([440,294], 1.1, .12),  // descending, grounding
+    inhale:()=>tone([392,523], .9, .12),
+    exhale:()=>tone([440,294], 1.1, .12),
     hold:()=>tone([392], .5, .07)
   };
 
-  // iOS has no Vibration API. Best-effort: toggle a native <input switch>,
-  // which fires the Taptic Engine. NOTE: Apple patched the *programmatic*
-  // trigger in iOS 26.5, so this auto-fires only on iOS 18–26.4.
+  // iOS haptic workaround
   const isiOS=/iP(hone|ad|od)/.test(navigator.platform)||(navigator.userAgent.includes("Mac")&&'ontouchend' in document);
   let hapticEl=null;
   function iosTick(times){
@@ -338,17 +445,13 @@
     if(h2>0)s.push({type:'holdOut',label:'Hold',dur:h2});
     return s;
   }
-  const easeFor=p=>{
-    // p in [0,1] within phase; map orb scale 0.55..1.0 smoothly
-    return p;
-  };
+  const easeFor=p=>p;
   const SMIN=0.55, SMAX=1.0;
 
   function setOrb(scale, type){
     root.style.setProperty('--s', scale.toFixed(3));
     const glow=0.30+(scale-SMIN)/(SMAX-SMIN)*0.65;
     root.style.setProperty('--glow', glow.toFixed(3));
-    // hue shift: aqua on inhale/hold-in, cooler violet as it releases
     if(type==='exhale'||type==='holdOut'){
       root.style.setProperty('--orb','#8fb0e0');
       root.style.setProperty('--orb-edge','#2c4f7a');
@@ -372,7 +475,6 @@
     const elapsed=(now-phaseStart)/1000;
     let p=Math.min(elapsed/ph.dur,1);
 
-    // orb scale per phase
     let scale=SMIN;
     if(ph.type==='inhale') scale=SMIN+(SMAX-SMIN)*easeOut(p);
     else if(ph.type==='exhale') scale=SMAX-(SMAX-SMIN)*easeIn(p);
@@ -380,11 +482,9 @@
     else if(ph.type==='holdOut') scale=SMIN;
     setOrb(scale, ph.type);
 
-    // ring progress + countdown
     prog.style.strokeDashoffset=(100-p*100).toFixed(1);
     countEl.textContent=Math.ceil(ph.dur-elapsed)+'s';
 
-    // total elapsed
     const tot=Math.floor((now-startTime)/1000);
     elapsedEl.textContent=Math.floor(tot/60)+':'+String(tot%60).padStart(2,'0');
 
@@ -419,17 +519,16 @@
   }
   go.addEventListener('click',()=> running?stop():start());
 
-  // idle orb breathing so it feels alive before start
   setOrb(SMIN,'idle');
 
-  // ---- device note (honest about platform limits) ----
+  // ---- device note ----
   const note=$('#devnote');
   if(isiOS){
-    note.innerHTML='On iPhone/iPad, web pages can\u2019t use the normal vibration API. This app tries a haptic workaround, but Apple patched the auto-trigger in iOS 26.5 \u2014 so the buzz only fires on iOS 18\u201326.4, and does nothing on newer versions. For reliable haptics on Apple gear, use your Apple Watch\u2019s Mindfulness app (Settings \u2192 Mindfulness \u2192 Haptics \u2192 Prominent), or keep the Sound cue on here with your ringer up.';
+    note.innerHTML='On iPhone/iPad, web pages can’t use the normal vibration API. This app tries a haptic workaround, but Apple patched the auto-trigger in iOS 26.5 — so the buzz only fires on iOS 18–26.4, and does nothing on newer versions. For reliable haptics on Apple gear, use your Apple Watch’s Mindfulness app (Settings → Mindfulness → Haptics → Prominent), or keep the Sound cue on here with your ringer up.';
   }else if(!('vibrate' in navigator)){
-    note.innerHTML='This browser doesn\u2019t expose a vibration API, so use the Sound cue instead.';
+    note.innerHTML='This browser doesn’t expose a vibration API, so use the Sound cue instead.';
   }else{
-    note.innerHTML='Tip: keep Sound on for the clearest cue. Vibration works on most Android devices; if you feel nothing, a silent/Do-Not-Disturb setting or your browser may be blocking it \u2014 one tap on the page is needed first (Start counts).';
+    note.innerHTML='Tip: keep Sound on for the clearest cue. Vibration works on most Android devices; if you feel nothing, a silent/Do-Not-Disturb setting or your browser may be blocking it — one tap on the page is needed first (Start counts).';
   }
 })();
 </script>
