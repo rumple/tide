@@ -164,6 +164,7 @@
 
   .cues{display:flex;gap:8px}
   .cues .chip{flex:1;text-align:center;display:flex;align-items:center;justify-content:center;gap:7px}
+  .cues .chip[hidden]{display:none}
 
   details.custom{border-top:1px solid var(--line);padding-top:14px}
   details.custom summary{
@@ -567,7 +568,9 @@
   // ---- device note ----
   const note=$('#devnote');
   if(isiOS){
-    note.innerHTML='On iPhone/iPad, web pages can’t use the normal vibration API. This app tries a haptic workaround, but Apple patched the auto-trigger in iOS 26.5 — so the buzz only fires on iOS 18–26.4, and does nothing on newer versions. For reliable haptics on Apple gear, use your Apple Watch’s Mindfulness app (Settings → Mindfulness → Haptics → Prominent), or keep the Sound cue on here with your ringer up.';
+    const vibeChip=document.querySelector('#cues .chip[data-cue="vibe"]');
+    if(vibeChip) vibeChip.hidden=true;
+    note.innerHTML='Vibration isn’t offered on iPhone/iPad — web pages can’t use the vibration API there. Use the Sound cue (with your ringer up) or the Visual cue. For haptics on Apple gear, the Apple Watch Mindfulness app works well (Settings → Mindfulness → Haptics → Prominent).';
   }else if(!('vibrate' in navigator)){
     note.innerHTML='This browser doesn’t expose a vibration API, so use the Sound cue instead.';
   }else{
