@@ -233,7 +233,7 @@
       </svg>
       <div class="halo"></div>
       <div class="orb"></div>
-      <div class="om-symbol" id="om-symbol" aria-hidden="true" hidden>ॐ</div>
+      <div class="om-symbol" id="om-symbol" aria-hidden="true">ॐ</div>
     </div>
 
     <div class="phase" aria-live="polite">
@@ -269,7 +269,7 @@
       <div>
         <p class="row-label">Symbol</p>
         <div class="chips">
-          <button class="chip" id="om-toggle" aria-pressed="false">ॐ&nbsp;Om</button>
+          <button class="chip" id="om-toggle" aria-pressed="true">ॐ&nbsp;Om</button>
         </div>
       </div>
 
@@ -354,7 +354,7 @@
   let pattern=PRESETS[0].t.slice();
   let activePreset='calm';
   let cues={sound:true, vibe:false, visual:false};
-  let showOm=false;
+  let showOm=true;
 
   // ---- build preset chips ----
   const presetsWrap=$('#presets');
