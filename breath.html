@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Breath — a quiet pacer</title>
+<style>
+  :root{
+    --bg:#0a1315;
+    --bg-2:#0e1f22;
+    --ink:#b9cbc7;
+    --ink-dim:#6f827f;
+    --aqua:#74e0d2;
+    --aqua-soft:#3f8d86;
+    --violet:#8a9bd6;
+    --line:rgba(180,220,214,.10);
+    --chip:rgba(180,220,214,.06);
+    --chip-on:rgba(116,224,210,.16);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    margin:0;
+    background:
+      radial-gradient(120% 80% at 50% -10%, var(--bg-2), var(--bg) 60%);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    display:flex;flex-direction:column;align-items:center;
+    min-height:100dvh;
+    padding:max(18px,env(safe-area-inset-top)) 18px max(18px,env(safe-area-inset-bottom));
+    overflow-x:hidden;
+  }
+
+  header{width:100%;max-width:520px;text-align:center;margin-top:6px}
+  .mark{
+    font-size:13px;letter-spacing:.42em;text-transform:uppercase;
+    color:var(--ink-dim);font-weight:500;
+  }
+
+  /* ---- the orb : the signature ---- */
+  .stage{
+    flex:1 1 auto;width:100%;max-width:520px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:26px;min-height:340px;position:relative;
+  }
+  .orb-wrap{
+    position:relative;width:min(72vw,300px);height:min(72vw,300px);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .halo{
+    position:absolute;inset:0;border-radius:50%;
+    background:radial-gradient(circle at 50% 50%, rgba(116,224,210,.30), rgba(116,224,210,0) 62%);
+    filter:blur(6px);transform:scale(var(--s,.55));opacity:var(--glow,.4);
+    transition:none;
+  }
+  .orb{
+    width:62%;height:62%;border-radius:50%;
+    background:
+      radial-gradient(circle at 38% 32%, #d8fff8 0%, var(--orb,#74e0d2) 34%, var(--orb-edge,#206b66) 100%);
+    transform:scale(var(--s,.55));
+    box-shadow:0 0 60px 6px rgba(116,224,210,calc(var(--glow,.4)*.55)) ,
+               inset 0 0 40px rgba(255,255,255,.18);
+  }
+  .ring{position:absolute;inset:0;transform:rotate(-90deg)}
+  .ring circle{fill:none;stroke-width:2}
+  .ring .track{stroke:rgba(180,220,214,.10)}
+  .ring .prog{stroke:var(--aqua);stroke-linecap:round;transition:stroke .6s ease}
+
+  .phase{
+    text-align:center;min-height:62px;
+  }
+  .phase .word{
+    font-size:30px;font-weight:300;letter-spacing:.06em;color:#e6f4f1;
+  }
+  .phase .count{
+    font-variant-numeric:tabular-nums;font-size:15px;color:var(--ink-dim);
+    margin-top:4px;letter-spacing:.18em;
+  }
+  .hint{font-size:13.5px;color:var(--ink-dim);text-align:center;max-width:300px;line-height:1.5}
+
+  /* ---- controls ---- */
+  .panel{width:100%;max-width:520px;display:flex;flex-direction:column;gap:16px;margin-top:8px}
+
+  .row-label{font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--ink-dim);margin:0 2px 8px}
+
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{
+    border:1px solid var(--line);background:var(--chip);color:var(--ink);
+    padding:9px 13px;border-radius:999px;font-size:13.5px;cursor:pointer;
+    transition:background .2s,border-color .2s,color .2s;
+  }
+  .chip[aria-pressed="true"]{background:var(--chip-on);border-color:rgba(116,224,210,.5);color:#dffaf4}
+  .chip small{color:var(--ink-dim);margin-left:6px;font-size:11.5px}
+  .chip[aria-pressed="true"] small{color:rgba(223,250,244,.7)}
+
+  .cues{display:flex;gap:8px}
+  .cues .chip{flex:1;text-align:center;display:flex;align-items:center;justify-content:center;gap:7px}
+
+  details.custom{border-top:1px solid var(--line);padding-top:14px}
+  details.custom summary{
+    list-style:none;cursor:pointer;font-size:13px;color:var(--aqua);
+    letter-spacing:.04em;display:flex;align-items:center;gap:8px;
+  }
+  details.custom summary::-webkit-details-marker{display:none}
+  details.custom summary::before{content:"+";font-size:16px;line-height:1;color:var(--ink-dim)}
+  details.custom[open] summary::before{content:"–"}
+  .sliders{display:flex;flex-direction:column;gap:13px;margin-top:14px}
+  .slider{display:grid;grid-template-columns:84px 1fr 48px;align-items:center;gap:12px}
+  .slider label{font-size:13px;color:var(--ink)}
+  .slider output{font-size:13px;color:var(--ink-dim);text-align:right;font-variant-numeric:tabular-nums}
+  input[type=range]{-webkit-appearance:none;appearance:none;height:3px;background:var(--line);border-radius:2px}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--aqua);border:3px solid var(--bg)}
+  input[type=range]::-moz-range-thumb{width:16px;height:16px;border:3px solid var(--bg);border-radius:50%;background:var(--aqua)}
+
+  .go{
+    width:100%;max-width:520px;margin-top:18px;padding:17px;border:none;border-radius:16px;
+    background:linear-gradient(180deg,#79e6d7,#34a99e);color:#062a27;
+    font-size:16px;font-weight:600;letter-spacing:.04em;cursor:pointer;
+    box-shadow:0 8px 30px -10px rgba(116,224,210,.6);transition:transform .12s,filter .2s;
+  }
+  .go:active{transform:translateY(1px)}
+  .go.stop{background:linear-gradient(180deg,#22383a,#1a2c2e);color:var(--aqua);box-shadow:none;border:1px solid var(--line)}
+
+  .meta{width:100%;max-width:520px;display:flex;justify-content:space-between;color:var(--ink-dim);font-size:12.5px;margin-top:12px}
+  .meta b{color:var(--ink);font-weight:500;font-variant-numeric:tabular-nums}
+
+  .note{max-width:520px;width:100%;font-size:12px;color:var(--ink-dim);line-height:1.55;margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+
+  @media (prefers-reduced-motion: reduce){
+    .orb,.halo{transition:none}
+  }
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+</style>
+</head>
+<body>
+  <header>
+    <div class="mark">Breath</div>
+  </header>
+
+  <main class="stage">
+    <div class="orb-wrap">
+      <svg class="ring" viewBox="0 0 100 100" aria-hidden="true">
+        <circle class="track" cx="50" cy="50" r="48"></circle>
+        <circle class="prog" cx="50" cy="50" r="48" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"></circle>
+      </svg>
+      <div class="halo"></div>
+      <div class="orb"></div>
+    </div>
+
+    <div class="phase" aria-live="polite">
+      <div class="word" id="word">Ready</div>
+      <div class="count" id="count">press start</div>
+    </div>
+    <p class="hint" id="hint">Let the out-breath be the long one. The mind tends to follow.</p>
+  </main>
+
+  <section class="panel">
+    <div>
+      <p class="row-label">Pattern</p>
+      <div class="chips" id="presets"></div>
+    </div>
+
+    <div>
+      <p class="row-label">Cue</p>
+      <div class="cues" id="cues">
+        <button class="chip" data-cue="sound" aria-pressed="true">🔊 Sound</button>
+        <button class="chip" data-cue="vibe" aria-pressed="false">📳 Vibration</button>
+        <button class="chip" data-cue="visual" aria-pressed="false">○ Visual only</button>
+      </div>
+    </div>
+
+    <details class="custom">
+      <summary>Custom timing</summary>
+      <div class="sliders" id="sliders">
+        <div class="slider"><label for="s-in">Inhale</label><input type="range" id="s-in" min="1" max="10" step="0.5" value="4"><output id="o-in">4s</output></div>
+        <div class="slider"><label for="s-h1">Hold in</label><input type="range" id="s-h1" min="0" max="10" step="0.5" value="0"><output id="o-h1">0s</output></div>
+        <div class="slider"><label for="s-out">Exhale</label><input type="range" id="s-out" min="1" max="14" step="0.5" value="8"><output id="o-out">8s</output></div>
+        <div class="slider"><label for="s-h2">Hold out</label><input type="range" id="s-h2" min="0" max="10" step="0.5" value="0"><output id="o-h2">0s</output></div>
+      </div>
+    </details>
+  </section>
+
+  <button class="go" id="go">Start</button>
+
+  <div class="meta">
+    <span>Breaths <b id="breaths">0</b></span>
+    <span>Time <b id="elapsed">0:00</b></span>
+  </div>
+
+  <p class="note" id="devnote"></p>
+
+<script>
+(function(){
+  const $=s=>document.querySelector(s);
+  const orb=$('.orb'), halo=$('.halo'), prog=$('.prog');
+  const word=$('#word'), countEl=$('#count'), hint=$('#hint');
+  const go=$('#go'), breathsEl=$('#breaths'), elapsedEl=$('#elapsed');
+  const root=document.documentElement;
+
+  // ---- patterns: [inhale, holdIn, exhale, holdOut] in seconds ----
+  const PRESETS=[
+    {id:'calm', name:'Calm', sub:'4·8',  hint:'Longer out-breath eases a racing system. Good when anxious or before sleep.', t:[4,0,8,0]},
+    {id:'panic',name:'Panic relief', sub:'2·8', hint:'The 2:8 pattern from the study — short in, long slow out. Steady the spiral.', t:[2,0,8,0]},
+    {id:'478', name:'4-7-8', sub:'', hint:'Inhale 4, hold 7, exhale 8. A classic wind-down.', t:[4,7,8,0]},
+    {id:'box', name:'Box', sub:'4·4·4·4', hint:'Equal four counts all round. Steady and focusing.', t:[4,4,4,4]},
+    {id:'coherent', name:'Coherent', sub:'5.5·5.5', hint:'Even in and out, about 5–6 breaths a minute. Balanced calm.', t:[5.5,0,5.5,0]},
+    {id:'custom', name:'Custom', sub:'', hint:'Set your own counts below.', t:null}
+  ];
+
+  let pattern=PRESETS[0].t.slice();
+  let activePreset='calm';
+  let cues={sound:true, vibe:false, visual:false};
+
+  // ---- build preset chips ----
+  const presetsWrap=$('#presets');
+  PRESETS.forEach(p=>{
+    const b=document.createElement('button');
+    b.className='chip'; b.dataset.id=p.id;
+    b.setAttribute('aria-pressed', p.id===activePreset);
+    b.innerHTML=p.name+(p.sub?` <small>${p.sub}</small>`:'');
+    b.onclick=()=>selectPreset(p.id);
+    presetsWrap.appendChild(b);
+  });
+
+  const sliders={'in':$('#s-in'),h1:$('#s-h1'),out:$('#s-out'),h2:$('#s-h2')};
+  const outs={'in':$('#o-in'),h1:$('#o-h1'),out:$('#o-out'),h2:$('#o-h2')};
+  function syncSliderLabels(){
+    outs['in'].textContent=sliders['in'].value+'s';
+    outs.h1.textContent=sliders.h1.value+'s';
+    outs.out.textContent=sliders.out.value+'s';
+    outs.h2.textContent=sliders.h2.value+'s';
+  }
+  Object.values(sliders).forEach(sl=>sl.addEventListener('input',()=>{
+    selectPreset('custom', true);
+    pattern=[+sliders['in'].value,+sliders.h1.value,+sliders.out.value,+sliders.h2.value];
+    syncSliderLabels();
+  }));
+
+  function selectPreset(id, fromSlider){
+    activePreset=id;
+    document.querySelectorAll('#presets .chip').forEach(c=>c.setAttribute('aria-pressed',c.dataset.id===id));
+    const p=PRESETS.find(x=>x.id===id);
+    hint.textContent=p.hint;
+    if(id!=='custom'){
+      pattern=p.t.slice();
+      sliders['in'].value=p.t[0]; sliders.h1.value=p.t[1];
+      sliders.out.value=p.t[2]; sliders.h2.value=p.t[3];
+      syncSliderLabels();
+      if(!fromSlider){const d=$('.custom'); }
+    }
+  }
+  syncSliderLabels();
+
+  // ---- cue toggles ----
+  $('#cues').addEventListener('click',e=>{
+    const b=e.target.closest('.chip'); if(!b)return;
+    const k=b.dataset.cue;
+    if(k==='visual'){ // visual only is exclusive-ish: turns the others off
+      cues={sound:false,vibe:false,visual:true};
+    }else{
+      cues.visual=false;
+      cues[k]=!cues[k];
+      if(!cues.sound && !cues.vibe) cues.visual=true;
+    }
+    document.querySelectorAll('#cues .chip').forEach(c=>{
+      c.setAttribute('aria-pressed', cues[c.dataset.cue]===true);
+    });
+  });
+
+  // ---- audio: gentle enveloped sine cues ----
+  let ac=null;
+  function tone(freqs, dur, gainPeak){
+    if(!ac) return;
+    const now=ac.currentTime;
+    const master=ac.createGain();
+    master.gain.value=0; master.connect(ac.destination);
+    // soft swell so it never startles
+    master.gain.setValueAtTime(0, now);
+    master.gain.linearRampToValueAtTime(gainPeak, now+Math.min(.12,dur*.3));
+    master.gain.linearRampToValueAtTime(0, now+dur);
+    freqs.forEach((f,i)=>{
+      const o=ac.createOscillator();
+      o.type='sine'; o.frequency.value=f;
+      const g=ac.createGain(); g.gain.value= i===0?1:0;
+      if(freqs.length>1){ // glide between the two notes
+        g.gain.setValueAtTime(i===0?1:0, now);
+        g.gain.linearRampToValueAtTime(i===0?0:1, now+dur*.6);
+      }
+      o.connect(g); g.connect(master);
+      o.start(now); o.stop(now+dur+.05);
+    });
+  }
+  const CUE={
+    inhale:()=>tone([392,523], .9, .12),   // ascending, opening
+    exhale:()=>tone([440,294], 1.1, .12),  // descending, grounding
+    hold:()=>tone([392], .5, .07)
+  };
+
+  // iOS has no Vibration API. Best-effort: toggle a native <input switch>,
+  // which fires the Taptic Engine. NOTE: Apple patched the *programmatic*
+  // trigger in iOS 26.5, so this auto-fires only on iOS 18–26.4.
+  const isiOS=/iP(hone|ad|od)/.test(navigator.platform)||(navigator.userAgent.includes("Mac")&&'ontouchend' in document);
+  let hapticEl=null;
+  function iosTick(times){
+    if(!hapticEl){
+      const label=document.createElement('label');
+      label.setAttribute('aria-hidden','true');
+      label.style.cssText='position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden';
+      const inp=document.createElement('input');
+      inp.type='checkbox'; inp.setAttribute('switch','');
+      label.appendChild(inp); document.body.appendChild(label);
+      hapticEl=label;
+    }
+    let n=0; (function go(){ hapticEl.click(); if(++n<times) setTimeout(go,130); })();
+  }
+  function vibrate(kind){
+    if(isiOS){ iosTick(kind==='exhale'?2:1); return; }
+    if(!('vibrate' in navigator)) return;
+    if(kind==='inhale') navigator.vibrate(180);
+    else if(kind==='exhale') navigator.vibrate([90,60,90,60,140]);
+    else navigator.vibrate(60);
+  }
+
+  function fire(phaseType){
+    if(cues.sound && CUE[phaseType]) CUE[phaseType]();
+    if(cues.vibe) vibrate(phaseType);
+  }
+
+  // ---- engine ----
+  let running=false, raf=null, startTime=0, breaths=0;
+  let seq=[], idx=0, phaseStart=0;
+
+  function buildSeq(){
+    const [i,h1,e,h2]=pattern;
+    const s=[{type:'inhale',label:'Breathe in',dur:i}];
+    if(h1>0)s.push({type:'hold',label:'Hold',dur:h1});
+    s.push({type:'exhale',label:'Breathe out',dur:e});
+    if(h2>0)s.push({type:'holdOut',label:'Hold',dur:h2});
+    return s;
+  }
+  const easeFor=p=>{
+    // p in [0,1] within phase; map orb scale 0.55..1.0 smoothly
+    return p;
+  };
+  const SMIN=0.55, SMAX=1.0;
+
+  function setOrb(scale, type){
+    root.style.setProperty('--s', scale.toFixed(3));
+    const glow=0.30+(scale-SMIN)/(SMAX-SMIN)*0.65;
+    root.style.setProperty('--glow', glow.toFixed(3));
+    // hue shift: aqua on inhale/hold-in, cooler violet as it releases
+    if(type==='exhale'||type==='holdOut'){
+      root.style.setProperty('--orb','#8fb0e0');
+      root.style.setProperty('--orb-edge','#2c4f7a');
+    }else{
+      root.style.setProperty('--orb','#74e0d2');
+      root.style.setProperty('--orb-edge','#206b66');
+    }
+  }
+
+  function enter(i){
+    idx=i; const ph=seq[idx];
+    phaseStart=performance.now();
+    word.textContent=ph.label;
+    prog.style.stroke = (ph.type==='exhale')?'#8fb0e0':'var(--aqua)';
+    fire(ph.type);
+  }
+
+  function loop(now){
+    if(!running) return;
+    const ph=seq[idx];
+    const elapsed=(now-phaseStart)/1000;
+    let p=Math.min(elapsed/ph.dur,1);
+
+    // orb scale per phase
+    let scale=SMIN;
+    if(ph.type==='inhale') scale=SMIN+(SMAX-SMIN)*easeOut(p);
+    else if(ph.type==='exhale') scale=SMAX-(SMAX-SMIN)*easeIn(p);
+    else if(ph.type==='hold') scale=SMAX;
+    else if(ph.type==='holdOut') scale=SMIN;
+    setOrb(scale, ph.type);
+
+    // ring progress + countdown
+    prog.style.strokeDashoffset=(100-p*100).toFixed(1);
+    countEl.textContent=Math.ceil(ph.dur-elapsed)+'s';
+
+    // total elapsed
+    const tot=Math.floor((now-startTime)/1000);
+    elapsedEl.textContent=Math.floor(tot/60)+':'+String(tot%60).padStart(2,'0');
+
+    if(p>=1){
+      if(seq[idx].type==='exhale') { breaths++; breathsEl.textContent=breaths; }
+      enter((idx+1)%seq.length);
+    }
+    raf=requestAnimationFrame(loop);
+  }
+  const easeOut=p=>1-Math.pow(1-p,2.2);
+  const easeIn=p=>Math.pow(p,2.2);
+
+  function start(){
+    if(cues.sound){
+      ac=ac||new (window.AudioContext||window.webkitAudioContext)();
+      if(ac.state==='suspended') ac.resume();
+    }
+    if(cues.vibe){ if(isiOS) iosTick(1); else if('vibrate' in navigator) navigator.vibrate(1); }
+    seq=buildSeq();
+    running=true; startTime=performance.now(); breaths=0; breathsEl.textContent='0';
+    go.textContent='Stop'; go.classList.add('stop');
+    enter(0);
+    raf=requestAnimationFrame(loop);
+  }
+  function stop(){
+    running=false; cancelAnimationFrame(raf);
+    if('vibrate' in navigator) navigator.vibrate(0);
+    go.textContent='Start'; go.classList.remove('stop');
+    word.textContent='Paused'; countEl.textContent='press start';
+    setOrb(SMIN,'idle');
+    prog.style.strokeDashoffset='100';
+  }
+  go.addEventListener('click',()=> running?stop():start());
+
+  // idle orb breathing so it feels alive before start
+  setOrb(SMIN,'idle');
+
+  // ---- device note (honest about platform limits) ----
+  const note=$('#devnote');
+  if(isiOS){
+    note.innerHTML='On iPhone/iPad, web pages can\u2019t use the normal vibration API. This app tries a haptic workaround, but Apple patched the auto-trigger in iOS 26.5 \u2014 so the buzz only fires on iOS 18\u201326.4, and does nothing on newer versions. For reliable haptics on Apple gear, use your Apple Watch\u2019s Mindfulness app (Settings \u2192 Mindfulness \u2192 Haptics \u2192 Prominent), or keep the Sound cue on here with your ringer up.';
+  }else if(!('vibrate' in navigator)){
+    note.innerHTML='This browser doesn\u2019t expose a vibration API, so use the Sound cue instead.';
+  }else{
+    note.innerHTML='Tip: keep Sound on for the clearest cue. Vibration works on most Android devices; if you feel nothing, a silent/Do-Not-Disturb setting or your browser may be blocking it \u2014 one tap on the page is needed first (Start counts).';
+  }
+})();
+</script>
+</body>
+</html>
