@@ -183,9 +183,34 @@
 
   .note{font-size:12px;color:var(--ink-dim);line-height:1.55;border-top:1px solid var(--line);padding-top:12px;margin-top:auto}
 
+  /* ---- om symbol ---- */
+  .om-symbol{
+    position:absolute;top:50%;left:50%;
+    transform:translate(-50%,-52%) scale(var(--s,.55));
+    pointer-events:none;user-select:none;z-index:1;
+    font-size:min(24vw,100px);line-height:1;
+    font-family:Georgia,"Noto Serif",serif;
+    color:rgba(255,252,228,.90);
+    text-shadow:
+      0 1px 3px rgba(0,0,0,.35),
+      0 0  8px rgba(255,242,160,.95),
+      0 0 22px rgba(116,224,210,.75),
+      0 0 46px rgba(116,224,210,.40);
+    transition:color .6s ease,text-shadow .6s ease;
+  }
+  .om-symbol.exhale-phase{
+    color:rgba(222,232,255,.90);
+    text-shadow:
+      0 1px 3px rgba(0,0,0,.35),
+      0 0  8px rgba(190,215,255,.95),
+      0 0 22px rgba(143,176,224,.75),
+      0 0 46px rgba(143,176,224,.40);
+  }
+
   @media (prefers-reduced-motion: reduce){
     .orb,.halo{transition:none}
     .drawer,.backdrop{transition:none}
+    .om-symbol{transition:none}
   }
   .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
 </style>
@@ -208,6 +233,7 @@
       </svg>
       <div class="halo"></div>
       <div class="orb"></div>
+      <div class="om-symbol" id="om-symbol" aria-hidden="true">ॐ</div>
     </div>
 
     <div class="phase" aria-live="polite">
@@ -241,6 +267,13 @@
       </div>
 
       <div>
+        <p class="row-label">Symbol</p>
+        <div class="chips">
+          <button class="chip" id="om-toggle" aria-pressed="true">ॐ&nbsp;Om</button>
+        </div>
+      </div>
+
+      <div>
         <p class="row-label">Cue</p>
         <div class="cues" id="cues">
           <button class="chip" data-cue="sound" aria-pressed="true">🔊 Sound</button>
@@ -266,7 +299,7 @@
 <script>
 (function(){
   const $=s=>document.querySelector(s);
-  const orb=$('.orb'), halo=$('.halo'), prog=$('.prog');
+  const orb=$('.orb'), halo=$('.halo'), prog=$('.prog'), omSymbol=$('#om-symbol');
   const word=$('#word'), countEl=$('#count'), hint=$('#hint');
   const go=$('#go'), breathsEl=$('#breaths'), elapsedEl=$('#elapsed');
   const root=document.documentElement;
@@ -321,6 +354,7 @@
   let pattern=PRESETS[0].t.slice();
   let activePreset='calm';
   let cues={sound:true, vibe:false, visual:false};
+  let showOm=true;
 
   // ---- build preset chips ----
   const presetsWrap=$('#presets');
@@ -360,6 +394,13 @@
     }
   }
   syncSliderLabels();
+
+  // ---- om symbol toggle ----
+  $('#om-toggle').addEventListener('click', ()=>{
+    showOm=!showOm;
+    $('#om-toggle').setAttribute('aria-pressed', showOm);
+    omSymbol.hidden=!showOm;
+  });
 
   // ---- cue toggles ----
   $('#cues').addEventListener('click',e=>{
@@ -455,9 +496,11 @@
     if(type==='exhale'||type==='holdOut'){
       root.style.setProperty('--orb','#8fb0e0');
       root.style.setProperty('--orb-edge','#2c4f7a');
+      omSymbol.classList.add('exhale-phase');
     }else{
       root.style.setProperty('--orb','#74e0d2');
       root.style.setProperty('--orb-edge','#206b66');
+      omSymbol.classList.remove('exhale-phase');
     }
   }
 
