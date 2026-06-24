@@ -479,6 +479,22 @@
   let running=false, raf=null, startTime=0, breaths=0;
   let seq=[], idx=0, phaseStart=0;
 
+  // ---- screen wake lock ----
+  // Keeps the screen awake during a session. Auto-released by the browser when
+  // the page is hidden, so we re-acquire on visibilitychange while running.
+  let wakeLock=null;
+  async function requestWakeLock(){
+    if(!('wakeLock' in navigator)) return;
+    try{ wakeLock=await navigator.wakeLock.request('screen'); }
+    catch(e){ wakeLock=null; }
+  }
+  function releaseWakeLock(){
+    if(wakeLock){ wakeLock.release().catch(()=>{}); wakeLock=null; }
+  }
+  document.addEventListener('visibilitychange',()=>{
+    if(running && document.visibilityState==='visible') requestWakeLock();
+  });
+
   function buildSeq(){
     const [i,h1,e,h2]=pattern;
     const s=[{type:'inhale',label:'Breathe in',dur:i}];
@@ -550,11 +566,13 @@
     seq=buildSeq();
     running=true; startTime=performance.now(); breaths=0; breathsEl.textContent='0';
     go.textContent='Stop'; go.classList.add('stop');
+    requestWakeLock();
     enter(0);
     raf=requestAnimationFrame(loop);
   }
   function stop(){
     running=false; cancelAnimationFrame(raf);
+    releaseWakeLock();
     if('vibrate' in navigator) navigator.vibrate(0);
     go.textContent='Start'; go.classList.remove('stop');
     word.textContent='Paused'; countEl.textContent='press start';
