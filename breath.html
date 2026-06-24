@@ -184,6 +184,8 @@
 
   .note{font-size:12px;color:var(--ink-dim);line-height:1.55;border-top:1px solid var(--line);padding-top:12px;margin-top:auto}
 
+  .version{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-dim);opacity:.6;text-align:right;margin-top:12px}
+
   /* ---- om symbol ---- */
   .om-symbol{
     position:absolute;top:50%;left:50%;
@@ -294,11 +296,14 @@
       </details>
 
       <p class="note" id="devnote"></p>
+      <p class="version" id="version"></p>
     </section>
   </div>
 
 <script>
 (function(){
+  // Bump VERSION with every change to the app.
+  const VERSION='1.1.0';
   const $=s=>document.querySelector(s);
   const orb=$('.orb'), halo=$('.halo'), prog=$('.prog'), omSymbol=$('#om-symbol');
   const word=$('#word'), countEl=$('#count'), hint=$('#hint');
@@ -582,6 +587,9 @@
   go.addEventListener('click',()=> running?stop():start());
 
   setOrb(SMIN,'idle');
+
+  // ---- version ----
+  $('#version').textContent='v'+VERSION;
 
   // ---- device note ----
   const note=$('#devnote');

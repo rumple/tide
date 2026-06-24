@@ -56,3 +56,4 @@ Hidden with `hidden` attribute + `translateX(100%)`. Opening: remove `hidden`, f
 - **No zero-duration phases**: `buildSeq()` skips `holdIn`/`holdOut` when their duration is 0. Any new phase type should follow this pattern.
 - **Pattern is always `.slice()`d** before use to avoid mutating the preset array.
 - The `$` helper is `document.querySelector`; there is no `$$` — use `document.querySelectorAll` directly.
+- **Bump `VERSION`** (the `const VERSION` near the top of the IIFE) with every change. It's shown as `v<VERSION>` at the bottom of the settings drawer. Use semver: patch for fixes/tweaks, minor for new features.
